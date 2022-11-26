@@ -98,7 +98,7 @@ pokemon_train %>%
 
 
 What relationships, if any, do you notice? Do these relationships make sense to you?
-
+<br />
 **I noticed that all of the predictors are positively correlated with each other. This might make sense (?) From a commercial perspective, you need some pokemons to be better than others in almost all areas to justify the difference in price and rarity. **
 
 
@@ -106,7 +106,38 @@ What relationships, if any, do you notice? Do these relationships make sense to 
 
 First, set up a decision tree model and workflow. Tune the `cost_complexity` hyperparameter. Use the same levels we used in Lab 7 -- that is, `range = c(-3, -1)`. Specify that the metric we want to optimize is `roc_auc`. 
 
+```{r, eval=FALSE}
+tree_spec <- decision_tree() %>%
+  set_engine("rpart") %>%
+  set_mode("classification")
+
+pokemon_wf <- workflow() %>%
+  add_model(tree_spec %>% set_args(cost_complexity = tune())) %>%
+  add_recipe(pokemon_recipe)
+
+param_grid <- grid_regular(cost_complexity(range = c(-3, -1)), levels = 10)
+
+tune_res <- tune_grid(
+  pokemon_wf, 
+  resamples = pokemon_folds, 
+  grid = param_grid, 
+  metrics = metric_set(roc_auc)
+)
+```
+
+```{r, echo=FALSE}
+#save(tune_res, file = 'tune_res.rda')
+load(file='tune_res.rda')
+```
+
+
 Print an `autoplot()` of the results. What do you observe? Does a single decision tree perform better with a smaller or larger complexity penalty?
+
+```{r}
+autoplot(tune_res)
+```
+< br />
+**It performs better with a smaller complexity penalty.** 
 
 ### Exercise 4
 
