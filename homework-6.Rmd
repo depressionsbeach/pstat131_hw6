@@ -27,6 +27,12 @@ The goal of this assignment is to build a statistical learning model that can pr
 
 **Note: Fitting ensemble tree-based models can take a little while to run. Consider running your models outside of the .Rmd, storing the results, and loading them in your .Rmd to minimize time to knit.**
 
+```{r, echo=FALSE, eval=FALSE}
+install.packages('rpart.plot')
+install.packages('vip')
+```
+
+
 ```{r, echo=FALSE}
 library(janitor)
 library(tidymodels)
@@ -35,6 +41,8 @@ library(ISLR2)
 library(tidyverse)
 library(glmnet)
 library(corrplot)
+library(rpart.plot)
+library(vip)
 tidymodels_prefer()
 ```
 
@@ -143,9 +151,29 @@ autoplot(tune_res)
 
 What is the `roc_auc` of your best-performing pruned decision tree on the folds? *Hint: Use `collect_metrics()` and `arrange()`.*
 
+```{r}
+pokemon_final <- tune_res %>%
+  select_best(metric = 'roc_auc') %>%
+  finalize_workflow(x = pokemon_wf) 
+
+pokemon_fit_folds <- pokemon_final %>%
+  fit_resamples(resamples = pokemon_folds)
+
+collect_metrics(pokemon_fit_folds)[2, c(1,3,5)]
+```
+
+
 ### Exercise 5
 
 Using `rpart.plot`, fit and visualize your best-performing pruned decision tree with the *training* set.
+
+```{r}
+pokemon_final %>%
+  fit(data = pokemon_train) %>%
+  extract_fit_engine() %>%
+  rpart.plot()
+```
+
 
 ### Exercise 5
 
